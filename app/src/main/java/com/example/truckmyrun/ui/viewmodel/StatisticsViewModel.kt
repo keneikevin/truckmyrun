@@ -7,4 +7,5 @@ import com.example.truckmyrun.repository.MainRepository
 class StatisticsViewModel @ViewModelInject constructor(
     val mainRepository:MainRepository
 ):ViewModel() {
+
 }

@@ -1,4 +1,11 @@
 <resources>
     <string name="app_name">truckmyrun</string>
+    <string-array name="filter_options">
+        <item>Date</item>
+        <item>Running Time</item>
+        <item>Distance</item>
+        <item>Avarage Speed</item>
+        <item>Calories Burned</item>
+    </string-array>
     <string name="google_map_key">AIzaSyDJTW2gR4O46ry50dB5FF1_f7JqGsPz0eI</string>
 </resources>
