@@ -21,30 +21,6 @@ class StatisticsFragment:Fragment(R.layout.fragment_statistics) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         subscribeToObservers()
-        setupBarChart()
-    }
-
-    private fun setupBarChart() {
-        barChart.xAxis.apply {
-            position = XAxis.XAxisPosition.BOTTOM
-            setDrawLabels(false)
-            axisLineColor = Color.WHITE
-            textColor = Color.WHITE
-            setDrawGridLines(false)
-        }
-        barChart.axisLeft.apply {
-            axisLineColor = Color.WHITE
-            textColor = Color.WHITE
-            setDrawGridLines(false)
-        }
-        barChart.axisRight.apply {
-            axisLineColor = Color.WHITE
-            textColor = Color.WHITE
-            setDrawGridLines(false)
-        }
-  barChart.apply {
-
-  }
     }
 
     private fun subscribeToObservers() {
