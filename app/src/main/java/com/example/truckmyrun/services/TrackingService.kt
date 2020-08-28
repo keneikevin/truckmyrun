@@ -45,25 +45,29 @@ import javax.inject.Inject
 
 typealias Polyline = MutableList<LatLng>
 typealias Polylines = MutableList<Polyline>
+
 @AndroidEntryPoint
-class TrackingService: LifecycleService() {
+class TrackingService : LifecycleService() {
+
     var isFirstRun = true
-    var serviceKilled = false
+
     @Inject
     lateinit var fusedLocationProviderClient: FusedLocationProviderClient
 
     private val timeRunInSeconds = MutableLiveData<Long>()
 
     @Inject
-    lateinit var baseNotificationBuilder :NotificationCompat.Builder
-    lateinit var curNotificationBuilder : NotificationCompat.Builder
+    lateinit var baseNotificationBuilder: NotificationCompat.Builder
+
+    lateinit var curNotificationBuilder: NotificationCompat.Builder
+
     companion object {
         val timeRunInMillis = MutableLiveData<Long>()
         val isTracking = MutableLiveData<Boolean>()
         val pathPoints = MutableLiveData<Polylines>()
     }
 
-    private fun postInitialValues(){
+    private fun postInitialValues() {
         isTracking.postValue(false)
         pathPoints.postValue(mutableListOf())
         timeRunInSeconds.postValue(0L)
@@ -74,27 +78,19 @@ class TrackingService: LifecycleService() {
         super.onCreate()
         curNotificationBuilder = baseNotificationBuilder
         postInitialValues()
-
         fusedLocationProviderClient = FusedLocationProviderClient(this)
 
         isTracking.observe(this, Observer {
-        updateLocationTracking(it)
-        updateNotificationTrackingState(it)
+            updateLocationTracking(it)
+            updateNotificationTrackingState(it)
         })
     }
-    private fun killService(){
-        serviceKilled=true
-        isFirstRun = true
-        pauseService()
-        postInitialValues()
-        stopForeground(true)
-        stopSelf()
-    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         intent?.let {
-            when(it.action){
-                ACTION_START_OR_RESUME_SERVICE ->{
-                    if (isFirstRun){
+            when (it.action) {
+                ACTION_START_OR_RESUME_SERVICE -> {
+                    if (isFirstRun) {
                         startForegroundService()
                         isFirstRun = false
                     } else {
@@ -102,48 +98,48 @@ class TrackingService: LifecycleService() {
                         startTimer()
                     }
                 }
-                ACTION_PAUSE_SERVICE ->{
-                    Timber.d("paused service")
+                ACTION_PAUSE_SERVICE -> {
+                    Timber.d("Paused service")
                     pauseService()
                 }
                 ACTION_STOP_SERVICE -> {
                     Timber.d("Stopped service")
-                    killService()
                 }
             }
         }
         return super.onStartCommand(intent, flags, startId)
     }
 
-
     private var isTimerEnabled = false
     private var lapTime = 0L
     private var timeRun = 0L
     private var timeStarted = 0L
-    private var lastsecondTimestamp = 0L
+    private var lastSecondTimestamp = 0L
 
-    private fun startTimer(){
+    private fun startTimer() {
         addEmptyPolyline()
         isTracking.postValue(true)
         timeStarted = System.currentTimeMillis()
         isTimerEnabled = true
         CoroutineScope(Dispatchers.Main).launch {
-            while (isTracking.value!!){
-                //time diff between now and time started
+            while (isTracking.value!!) {
+                // time difference between now and timeStarted
                 lapTime = System.currentTimeMillis() - timeStarted
-                //post new lapTime
+                // post the new lapTime
                 timeRunInMillis.postValue(timeRun + lapTime)
-                if (timeRunInMillis.value!! >= lastsecondTimestamp + 1000L){
-                    lastsecondTimestamp += 1000L
+                if (timeRunInMillis.value!! >= lastSecondTimestamp + 1000L) {
+                    timeRunInSeconds.postValue(timeRunInSeconds.value!! + 1)
+                    lastSecondTimestamp += 1000L
                 }
                 delay(TIMER_UPDATE_INTERVAL)
             }
             timeRun += lapTime
         }
     }
-    private fun pauseService(){
-        isTimerEnabled = false
+
+    private fun pauseService() {
         isTracking.postValue(false)
+        isTimerEnabled = false
     }
 
     private fun updateNotificationTrackingState(isTracking: Boolean) {
@@ -166,13 +162,10 @@ class TrackingService: LifecycleService() {
             isAccessible = true
             set(curNotificationBuilder, ArrayList<NotificationCompat.Action>())
         }
-        if (!serviceKilled){
-            curNotificationBuilder = baseNotificationBuilder
-                .addAction(R.drawable.ic_pause_black_24dp, notificationActionText, pendingIntent)
-            notificationManager.notify(NOTIFICATION_ID, curNotificationBuilder.build())
-        }
-        }
-
+        curNotificationBuilder = baseNotificationBuilder
+            .addAction(R.drawable.ic_pause_black_24dp, notificationActionText, pendingIntent)
+        notificationManager.notify(NOTIFICATION_ID, curNotificationBuilder.build())
+    }
 
     @SuppressLint("MissingPermission")
     private fun updateLocationTracking(isTracking: Boolean) {
@@ -253,11 +246,6 @@ class TrackingService: LifecycleService() {
         notificationManager.createNotificationChannel(channel)
     }
 }
-
-
-
-
-
 
 
 
